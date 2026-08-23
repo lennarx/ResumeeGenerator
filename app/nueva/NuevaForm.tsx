@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import GeneratedCvBlock from "@/components/GeneratedCvBlock";
 
 type CvOption = { id: string; name: string };
@@ -34,8 +34,7 @@ export default function NuevaForm({ cvs }: { cvs: CvOption[] }) {
     [companyName, baseCvId, jobText, imageFile]
   );
 
-  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0] ?? null;
+  function validateAndSetImage(file: File | null) {
     setImageError(null);
     if (!file) {
       setImageFile(null);
@@ -53,6 +52,41 @@ export default function NuevaForm({ cvs }: { cvs: CvOption[] }) {
     }
     setImageFile(file);
   }
+
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    validateAndSetImage(e.target.files?.[0] ?? null);
+  }
+
+  useEffect(() => {
+    function handlePaste(e: ClipboardEvent) {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith("image/")) {
+          const file = item.getAsFile();
+          if (file) {
+            e.preventDefault();
+            validateAndSetImage(file);
+          }
+          break;
+        }
+      }
+    }
+
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
+  }, []);
+
+  const imagePreviewUrl = useMemo(
+    () => (imageFile ? URL.createObjectURL(imageFile) : null),
+    [imageFile]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+    };
+  }, [imagePreviewUrl]);
 
   async function handleSubmit() {
     if (!canSubmit || isLoading) return;
@@ -127,7 +161,7 @@ export default function NuevaForm({ cvs }: { cvs: CvOption[] }) {
 
           <div className="flex flex-col gap-2">
             <label htmlFor="job-image" className="text-sm font-medium text-muted">
-              O adjuntá una captura de la vacante
+              O adjuntá una captura de la vacante (podés pegarla con Ctrl+V)
             </label>
             <input
               id="job-image"
@@ -137,6 +171,24 @@ export default function NuevaForm({ cvs }: { cvs: CvOption[] }) {
               className="w-full rounded-2xl border border-border bg-surface p-3 text-sm text-foreground file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-1.5 file:text-accent-foreground focus:border-accent focus:outline-none"
             />
             {imageError && <p className="text-sm text-red-600">{imageError}</p>}
+            {imagePreviewUrl && (
+              <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imagePreviewUrl}
+                  alt="Vista previa de la captura"
+                  className="h-14 w-14 rounded-lg object-cover"
+                />
+                <span className="flex-1 truncate text-sm text-foreground">{imageFile?.name}</span>
+                <button
+                  type="button"
+                  onClick={() => validateAndSetImage(null)}
+                  className="text-sm font-medium text-accent"
+                >
+                  Quitar
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
