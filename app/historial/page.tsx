@@ -9,13 +9,14 @@ type ApplicationRow = {
   id: string;
   company_name: string;
   created_at: string;
+  generated_cv_text: string | null;
   cvs: { name: string } | null;
 };
 
 export default async function HistorialPage() {
   const { data, error } = await getSupabaseAdmin()
     .from("applications")
-    .select("id, company_name, created_at, cvs(name)")
+    .select("id, company_name, created_at, generated_cv_text, cvs(name)")
     .order("created_at", { ascending: false })
     .returns<ApplicationRow[]>();
 
@@ -26,6 +27,7 @@ export default async function HistorialPage() {
     company: row.company_name,
     date: formatDate(row.created_at),
     cvUsed: row.cvs?.name ?? "Sin CV asociado",
+    hasGeneratedCv: Boolean(row.generated_cv_text),
   }));
 
   return (

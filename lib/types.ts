@@ -10,4 +10,5 @@ export type Application = {
   company: string;
   date: string;
   cvUsed: string;
+  hasGeneratedCv: boolean;
 };

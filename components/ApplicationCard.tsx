@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Application } from "@/lib/types";
 
 const TAG_STYLES: Record<string, string> = {
@@ -19,6 +20,14 @@ export default function ApplicationCard({ application }: { application: Applicat
           {application.cvUsed}
         </span>
       </div>
+      {application.hasGeneratedCv && (
+        <Link
+          href={`/historial/${application.id}`}
+          className="mt-3 inline-block text-sm font-medium text-accent"
+        >
+          Ver CV generado
+        </Link>
+      )}
     </div>
   );
 }

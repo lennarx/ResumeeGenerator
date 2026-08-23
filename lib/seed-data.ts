@@ -21,17 +21,20 @@ export const mockApplications: Application[] = [
     company: "Laboratorios Sur",
     date: "18 ago 2026",
     cvUsed: "Salud",
+    hasGeneratedCv: false,
   },
   {
     id: "app-2",
     company: "Nimbus Software",
     date: "12 ago 2026",
     cvUsed: "QA",
+    hasGeneratedCv: false,
   },
   {
     id: "app-3",
     company: "Clinica del Parque",
     date: "30 jul 2026",
     cvUsed: "Salud",
+    hasGeneratedCv: false,
   },
 ];
