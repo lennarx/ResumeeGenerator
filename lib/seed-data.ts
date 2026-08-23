@@ -1,16 +1,4 @@
-export type Cv = {
-  id: string;
-  name: string;
-  updatedAt: string;
-  iconColor: "blue" | "green";
-};
-
-export type Application = {
-  id: string;
-  company: string;
-  date: string;
-  cvUsed: string;
-};
+import type { Cv, Application } from "@/lib/types";
 
 export const mockCvs: Cv[] = [
   {

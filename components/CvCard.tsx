@@ -1,4 +1,4 @@
-import type { Cv } from "@/lib/mock-data";
+import type { Cv } from "@/lib/types";
 
 const ICON_BG: Record<Cv["iconColor"], string> = {
   blue: "bg-icon-blue",

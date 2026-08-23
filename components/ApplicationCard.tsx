@@ -1,4 +1,4 @@
-import type { Application } from "@/lib/mock-data";
+import type { Application } from "@/lib/types";
 
 const TAG_STYLES: Record<string, string> = {
   QA: "bg-icon-blue/15 text-icon-blue",

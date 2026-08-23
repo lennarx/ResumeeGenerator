@@ -1,19 +1,47 @@
+import Link from "next/link";
 import CvCard from "@/components/CvCard";
-import { mockCvs } from "@/lib/mock-data";
+import { formatDate } from "@/lib/format";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import type { Cv } from "@/lib/types";
 
-export default function CvsPage() {
+export const dynamic = "force-dynamic";
+
+const ICON_COLORS: Cv["iconColor"][] = ["blue", "green"];
+
+type CvRow = { id: string; name: string; updated_at: string };
+
+export default async function CvsPage() {
+  const { data, error } = await getSupabaseAdmin()
+    .from("cvs")
+    .select("id, name, updated_at")
+    .order("updated_at", { ascending: false })
+    .returns<CvRow[]>();
+
+  if (error) throw error;
+
+  const cvs: Cv[] = (data ?? []).map((row, index) => ({
+    id: row.id,
+    name: row.name,
+    updatedAt: `Actualizado el ${formatDate(row.updated_at)}`,
+    iconColor: ICON_COLORS[index % ICON_COLORS.length],
+  }));
+
   return (
     <div className="flex flex-col gap-4 px-4 pt-6 pb-4">
       <h1 className="text-2xl font-bold text-foreground">Mis CVs</h1>
 
-      <div className="flex flex-col gap-3">
-        {mockCvs.map((cv) => (
-          <CvCard key={cv.id} cv={cv} />
-        ))}
-      </div>
+      {cvs.length === 0 ? (
+        <p className="text-sm text-muted">Todavía no cargaste ningún CV.</p>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {cvs.map((cv) => (
+            <CvCard key={cv.id} cv={cv} />
+          ))}
+        </div>
+      )}
 
-      <button
-        type="button"
+      <Link
+        href="/cvs/nuevo"
         className="flex items-center justify-center gap-2 rounded-2xl border border-border py-3.5 font-medium text-foreground transition-colors active:bg-surface-muted"
       >
         <svg
@@ -27,7 +55,7 @@ export default function CvsPage() {
           <path strokeLinecap="round" d="M12 5v14M5 12h14" />
         </svg>
         Agregar CV
-      </button>
+      </Link>
     </div>
   );
 }
