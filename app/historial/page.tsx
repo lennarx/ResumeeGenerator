@@ -1,4 +1,5 @@
 import ApplicationCard from "@/components/ApplicationCard";
+import ApplicationsTable from "@/components/ApplicationsTable";
 import { formatDate } from "@/lib/format";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import type { Application } from "@/lib/types";
@@ -39,11 +40,14 @@ export default async function HistorialPage() {
           Todavía no registraste ninguna postulación.
         </p>
       ) : (
-        <div className="flex flex-col gap-3">
-          {applications.map((application) => (
-            <ApplicationCard key={application.id} application={application} />
-          ))}
-        </div>
+        <>
+          <div className="flex flex-col gap-3 md:hidden">
+            {applications.map((application) => (
+              <ApplicationCard key={application.id} application={application} />
+            ))}
+          </div>
+          <ApplicationsTable applications={applications} />
+        </>
       )}
     </div>
   );

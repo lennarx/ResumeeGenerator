@@ -27,13 +27,13 @@ export default async function CvsPage() {
   }));
 
   return (
-    <div className="flex flex-col gap-4 px-4 pt-6 pb-4">
-      <h1 className="text-2xl font-bold text-foreground">Mis CVs</h1>
+    <div className="flex flex-col gap-4 px-4 pt-6 pb-4 md:grid md:grid-cols-2 md:gap-4 lg:grid-cols-3">
+      <h1 className="text-2xl font-bold text-foreground md:col-span-full">Mis CVs</h1>
 
       {cvs.length === 0 ? (
-        <p className="text-sm text-muted">Todavía no cargaste ningún CV.</p>
+        <p className="text-sm text-muted md:col-span-full">Todavía no cargaste ningún CV.</p>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 md:contents">
           {cvs.map((cv) => (
             <CvCard key={cv.id} cv={cv} />
           ))}
@@ -42,7 +42,7 @@ export default async function CvsPage() {
 
       <Link
         href="/cvs/nuevo"
-        className="flex items-center justify-center gap-2 rounded-2xl border border-border py-3.5 font-medium text-foreground transition-colors active:bg-surface-muted"
+        className="flex items-center justify-center gap-2 rounded-2xl border border-border py-3.5 font-medium text-foreground transition-colors active:bg-surface-muted md:aspect-square md:flex-col md:justify-center md:gap-2 md:border-dashed md:py-0"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

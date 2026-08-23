@@ -95,78 +95,86 @@ export default function NuevaForm({ cvs }: { cvs: CvOption[] }) {
     <div className="flex flex-col gap-5 px-4 pt-6 pb-4">
       <h1 className="text-2xl font-bold text-foreground">Nueva postulación</h1>
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="company-name" className="text-sm font-medium text-muted">
-          Empresa
-        </label>
-        <input
-          id="company-name"
-          type="text"
-          value={companyName}
-          onChange={(e) => setCompanyName(e.target.value)}
-          placeholder="Nombre de la empresa"
-          className="w-full rounded-2xl border border-border bg-surface p-3 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none"
-        />
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-[1.4fr_1fr] md:gap-6">
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="company-name" className="text-sm font-medium text-muted">
+              Empresa
+            </label>
+            <input
+              id="company-name"
+              type="text"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              placeholder="Nombre de la empresa"
+              className="w-full rounded-2xl border border-border bg-surface p-3 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label htmlFor="job-text" className="text-sm font-medium text-muted">
+              Texto de la vacante
+            </label>
+            <textarea
+              id="job-text"
+              value={jobText}
+              onChange={(e) => setJobText(e.target.value)}
+              placeholder="Pegá acá el texto de la vacante..."
+              rows={10}
+              className="w-full resize-none rounded-2xl border border-border bg-surface p-3 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label htmlFor="job-image" className="text-sm font-medium text-muted">
+              O adjuntá una captura de la vacante
+            </label>
+            <input
+              id="job-image"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="w-full rounded-2xl border border-border bg-surface p-3 text-sm text-foreground file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-1.5 file:text-accent-foreground focus:border-accent focus:outline-none"
+            />
+            {imageError && <p className="text-sm text-red-600">{imageError}</p>}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label htmlFor="base-cv" className="text-sm font-medium text-muted">
+              CV base
+            </label>
+            <select
+              id="base-cv"
+              value={baseCvId}
+              onChange={(e) => setBaseCvId(e.target.value)}
+              className="w-full rounded-2xl border border-border bg-surface p-3 text-sm text-foreground focus:border-accent focus:outline-none"
+            >
+              {cvs.map((cv) => (
+                <option key={cv.id} value={cv.id}>
+                  {cv.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {submitError && <p className="text-sm text-red-600">{submitError}</p>}
+
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!canSubmit || isLoading}
+            className="mt-2 rounded-2xl bg-accent py-3.5 font-semibold text-accent-foreground transition-opacity active:opacity-90 disabled:opacity-60"
+          >
+            {isLoading ? "Generando..." : "Generar CV"}
+          </button>
+        </div>
+
+        {generatedText && (
+          <div className="flex flex-col">
+            <GeneratedCvBlock text={generatedText} />
+          </div>
+        )}
       </div>
-
-      <div className="flex flex-col gap-2">
-        <label htmlFor="job-text" className="text-sm font-medium text-muted">
-          Texto de la vacante
-        </label>
-        <textarea
-          id="job-text"
-          value={jobText}
-          onChange={(e) => setJobText(e.target.value)}
-          placeholder="Pegá acá el texto de la vacante..."
-          rows={10}
-          className="w-full resize-none rounded-2xl border border-border bg-surface p-3 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none"
-        />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <label htmlFor="job-image" className="text-sm font-medium text-muted">
-          O adjuntá una captura de la vacante
-        </label>
-        <input
-          id="job-image"
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-          className="w-full rounded-2xl border border-border bg-surface p-3 text-sm text-foreground file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-1.5 file:text-accent-foreground focus:border-accent focus:outline-none"
-        />
-        {imageError && <p className="text-sm text-red-600">{imageError}</p>}
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <label htmlFor="base-cv" className="text-sm font-medium text-muted">
-          CV base
-        </label>
-        <select
-          id="base-cv"
-          value={baseCvId}
-          onChange={(e) => setBaseCvId(e.target.value)}
-          className="w-full rounded-2xl border border-border bg-surface p-3 text-sm text-foreground focus:border-accent focus:outline-none"
-        >
-          {cvs.map((cv) => (
-            <option key={cv.id} value={cv.id}>
-              {cv.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {submitError && <p className="text-sm text-red-600">{submitError}</p>}
-
-      <button
-        type="button"
-        onClick={handleSubmit}
-        disabled={!canSubmit || isLoading}
-        className="mt-2 rounded-2xl bg-accent py-3.5 font-semibold text-accent-foreground transition-opacity active:opacity-90 disabled:opacity-60"
-      >
-        {isLoading ? "Generando..." : "Generar CV"}
-      </button>
-
-      {generatedText && <GeneratedCvBlock text={generatedText} />}
     </div>
   );
 }
