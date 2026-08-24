@@ -9,6 +9,10 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["@react-pdf/renderer"],
+  outputFileTracingIncludes: {
+    "/api/cv-pdf": ["./node_modules/@fontsource/noto-sans/files/noto-sans-latin-{400,700}-normal.woff"],
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: "15mb",

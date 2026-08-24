@@ -285,7 +285,10 @@ export default function NuevaForm({ cvs }: { cvs: CvOption[] }) {
 
         {generatedText && (
           <div className="flex flex-col">
-            <GeneratedCvBlock text={generatedText} />
+            <GeneratedCvBlock
+              text={generatedText}
+              fileName={companyName.trim() ? `CV - ${companyName.trim()}.pdf` : "CV.pdf"}
+            />
           </div>
         )}
       </div>

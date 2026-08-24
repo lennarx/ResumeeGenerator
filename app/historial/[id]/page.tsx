@@ -37,7 +37,10 @@ export default async function ApplicationDetailPage({
           {formatDate(data.created_at)} · CV base: {data.cvs?.name ?? "Sin CV asociado"}
         </p>
       </div>
-      <GeneratedCvBlock text={data.generated_cv_text} />
+      <GeneratedCvBlock
+        text={data.generated_cv_text}
+        fileName={`CV - ${data.company_name}.pdf`}
+      />
     </div>
   );
 }
