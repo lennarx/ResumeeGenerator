@@ -1,7 +1,7 @@
 import "server-only";
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
-import { extractPdfText } from "@/lib/extract-pdf-text";
+import { getCvTextById } from "@/lib/get-cv-text";
 
 export const dynamic = "force-dynamic";
 
@@ -23,8 +23,6 @@ type GenerateCvBody = {
   jobDescriptionText?: unknown;
   jobImageBase64?: unknown;
 };
-
-type CvRow = { id: string; name: string; file_path: string | null };
 
 export async function POST(request: Request) {
   let body: GenerateCvBody;
@@ -49,33 +47,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Pegá el texto de la vacante o adjuntá una imagen." }, { status: 400 });
   }
 
-  const supabaseAdmin = getSupabaseAdmin();
+  const cvText = await getCvTextById(cvId);
 
-  const { data: cv, error: cvError } = await supabaseAdmin
-    .from("cvs")
-    .select("id, name, file_path")
-    .eq("id", cvId)
-    .maybeSingle<CvRow>();
-
-  if (cvError || !cv || !cv.file_path) {
-    return NextResponse.json({ error: "No se pudo encontrar el CV seleccionado." }, { status: 502 });
-  }
-
-  const { data: fileBlob, error: downloadError } = await supabaseAdmin.storage
-    .from("cvs-files")
-    .download(cv.file_path);
-
-  if (downloadError || !fileBlob) {
-    return NextResponse.json({ error: "No se pudo descargar el archivo del CV." }, { status: 502 });
-  }
-
-  let cvText: string;
-  try {
-    const arrayBuffer = await fileBlob.arrayBuffer();
-    cvText = await extractPdfText(Buffer.from(arrayBuffer));
-    if (!cvText) throw new Error("empty");
-  } catch {
-    return NextResponse.json({ error: "No se pudo leer el contenido del PDF del CV." }, { status: 502 });
+  if (!cvText) {
+    return NextResponse.json({ error: "No se pudo obtener el contenido del CV seleccionado." }, { status: 502 });
   }
 
   const userTextParts = [
@@ -131,12 +106,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "El servicio de generación de CV no devolvió contenido." }, { status: 502 });
   }
 
-  const { data: inserted, error: insertError } = await supabaseAdmin
+  const { data: inserted, error: insertError } = await getSupabaseAdmin()
     .from("applications")
     .insert({
       company_name: companyName,
       job_description: jobDescriptionText || "[vacante cargada como imagen]",
-      cv_id: cv.id,
+      cv_id: cvId,
       generated_cv_text: generatedText,
     })
     .select("id")

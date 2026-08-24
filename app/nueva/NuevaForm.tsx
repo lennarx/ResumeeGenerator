@@ -4,8 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import GeneratedCvBlock from "@/components/GeneratedCvBlock";
 
 type CvOption = { id: string; name: string };
+type CvSuggestion = { cvId: string; cvName: string; reason: string };
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const SUGGEST_DEBOUNCE_MS = 800;
+const MIN_JOB_TEXT_LENGTH = 40;
 
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -25,6 +28,9 @@ export default function NuevaForm({ cvs }: { cvs: CvOption[] }) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [generatedText, setGeneratedText] = useState<string | null>(null);
+  const [suggestion, setSuggestion] = useState<CvSuggestion | null>(null);
+  const [isSuggesting, setIsSuggesting] = useState(false);
+  const [userTouchedCvSelector, setUserTouchedCvSelector] = useState(false);
 
   const canSubmit = useMemo(
     () =>
@@ -87,6 +93,53 @@ export default function NuevaForm({ cvs }: { cvs: CvOption[] }) {
       if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
     };
   }, [imagePreviewUrl]);
+
+  async function requestSuggestion(payload: { jobDescriptionText?: string; jobImageBase64?: string }) {
+    setIsSuggesting(true);
+    try {
+      const response = await fetch("/api/suggest-cv", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      const nextSuggestion: CvSuggestion | null = data?.suggestion ?? null;
+      setSuggestion(nextSuggestion);
+      if (nextSuggestion && !userTouchedCvSelector) {
+        setBaseCvId(nextSuggestion.cvId);
+      }
+    } catch {
+      // fallo silencioso: la sugerencia es una mejora opcional
+    } finally {
+      setIsSuggesting(false);
+    }
+  }
+
+  useEffect(() => {
+    const trimmed = jobText.trim();
+    if (trimmed.length < MIN_JOB_TEXT_LENGTH) return;
+
+    const timeoutId = setTimeout(() => {
+      requestSuggestion({ jobDescriptionText: trimmed });
+    }, SUGGEST_DEBOUNCE_MS);
+
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobText]);
+
+  useEffect(() => {
+    if (!imageFile) return;
+    let cancelled = false;
+
+    readFileAsDataUrl(imageFile).then((jobImageBase64) => {
+      if (!cancelled) requestSuggestion({ jobImageBase64 });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imageFile]);
 
   async function handleSubmit() {
     if (!canSubmit || isLoading) return;
@@ -198,7 +251,10 @@ export default function NuevaForm({ cvs }: { cvs: CvOption[] }) {
             <select
               id="base-cv"
               value={baseCvId}
-              onChange={(e) => setBaseCvId(e.target.value)}
+              onChange={(e) => {
+                setBaseCvId(e.target.value);
+                setUserTouchedCvSelector(true);
+              }}
               className="w-full rounded-2xl border border-border bg-surface p-3 text-sm text-foreground focus:border-accent focus:outline-none"
             >
               {cvs.map((cv) => (
@@ -207,6 +263,12 @@ export default function NuevaForm({ cvs }: { cvs: CvOption[] }) {
                 </option>
               ))}
             </select>
+            {isSuggesting && <p className="text-xs text-muted">Analizando vacante...</p>}
+            {!isSuggesting && suggestion && (
+              <p className="text-xs text-muted">
+                {userTouchedCvSelector ? "Sugerencia" : "Sugerido"}: {suggestion.cvName} — {suggestion.reason}
+              </p>
+            )}
           </div>
 
           {submitError && <p className="text-sm text-red-600">{submitError}</p>}
